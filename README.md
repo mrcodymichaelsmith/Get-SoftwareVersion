@@ -33,3 +33,10 @@ New-CMApplicationDeployment -CollectionName "CollectionNameHere" -DeploymentId $
 
 How to Get Deployment ID of software Center
 Get-CMApplicationDeployment -Name "ApplicationNameHere" | Select-Object -ExpandProperty DeploymentId
+
+
+
+
+Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Vendor, InstallDate | Sort-Object DisplayName
+
+Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor, InstallDate | Sort-Object Name
