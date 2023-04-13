@@ -1,47 +1,10 @@
 # Get-SoftwareVersion
-Use Powershell to get a list of ALL install software on a computer, version and install date
-
-
-Security was yelling at us one day because their Tenable reports were saying that Microsoft Edge, Microsoft Word, Google Chrome and other programs were missing criicle software updates. 
-They asked us to find the users of these computers and force them to update. 
-Now, In my experiance, most people don't want to talk to the helpdesk unless they need something from us. 
-I want to use powershell to get a list of all installed software, the version installed and when it was installed. 
-I would then run this program to get a report from the remote computer to show security that the computer was up to date. 
-
-At first I wanetd to use Get-Hotfix. This does not work because it only gives information about hotfixes installed by the windows installer. 
-This gives me no info on MS Office, Edge, Chrome, etc. 
-
-Get-WmiObject -Class Win32_Product -ComputerName REMOTE_COMPUTER_NAME | Select-Object Name, Version, InstallDate
-
-Note that querying the Win32_Product class can take some time, especially on systems with a large number of installed products, because it verifies the installation source and can trigger repairs for products that are not installed properly. If you only need a list of installed products and don't need the installation source verification or repair triggers, you can use the Get-ItemProperty cmdlet and query the uninstall registry keys instead. Here's an example command for that:
-
-Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, InstallDate
-Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* -ComputerName REMOTE_COMPUTER_NAME | Select-Object DisplayName, DisplayVersion, InstallDate
-
-
-omething pending is software center
-Get-WmiObject -Namespace root\ccm\ClientSDK -Class CcmSoftwareUpdates | Where-Object { $_.EvaluationState -eq 2 }
-
-
-Did something in software Center fail
-Get-WmiObject -Namespace root\ccm\ClientSDK -Class CcmSoftwareUpdate | Where-Object { $_.ComplianceState -eq 4 }
-
-
-How to force a program to install from software Center
-$DeploymentID = "DeploymentIDHere"
-New-CMApplicationDeployment -CollectionName "CollectionNameHere" -DeploymentId $DeploymentID -ForceInstall -FastNetworkInstall -DisableWoL
-
-How to Get Deployment ID of software Center
-Get-CMApplicationDeployment -Name "ApplicationNameHere" | Select-Object -ExpandProperty DeploymentId
-
-
-$uninstallApps = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object @{Name='Name';Expression={$_.DisplayName}}, DisplayVersion, Publisher, InstallDate
-$wmiApps = Get-WmiObject -Class Win32_Product | Select-Object @{Name='Name';Expression={$_.Name}}, Version, Vendor, InstallDate
-$allApps = $uninstallApps + $wmiApps | Sort-Object -Unique Name
-$allApps
-
-
-$uninstallApps = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Vendor, InstallDate
-$wmiApps = Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor, InstallDate
-$allApps = $uninstallApps + $wmiApps | Sort-Object -Unique DisplayName
-$allApps
+Use PowerShell to get a list of ALL install software on a computer, version and install date
+Security was yelling at us one day because their Tenable reports were saying that Microsoft Edge, Microsoft Word, Google Chrome and other programs were missing critical software updates. They asked us to find the users of these computers and force them to update. Now, In my experience, most people don't want to talk to the helpdesk unless they need something from us. So, to fix this issue without interrupting our users, I wanted to use PowerShell to get a list of all installed software, the version installed and when it was installed. I would then run this program to get a report from the remote computer to show security that the computer was up to date. And, ideally, I would do what I could to make the software update
+At first, I wanted use Get-Hotfix. It seemed perfect. Unfortunately This does not work because it only gives information about hotfixes installed by the windows installer. I wanted ALL software 
+After a lot of digging I found two solutions . 
+1: Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, InstallDate | Sort-Object DisplayName
+2: Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor, InstallDate | Sort-Object Name
+The first option searches the Registry for the software Name, DisplayVersion and InstallDate. It runs REALLY fast. The second option uses a WMI object and grabs the name Version, Vendor and Install date. It takes a minute to run. I have compared the two commands and I get more info out of the second option, so that is the primary one I want to use. 
+Now, something I wanted to do is force the update remotely if I can. Most of these programs needed to be updated via software center. Unfortunately, without install the SDK onto my computer I am unable to force software center to install a package, or even view pending updates on a computer. That is disappointing but not the end of the world. 
+I have used this one liner a lot and I have mostly learned one thing. The computer is usually up to date, but it needs to reboot to install the update. So, if you have security asking you to update computers because they are not up to date, go ahead and use this one liner to see if they are up to date or not. And then send an email to the user asking them to reboot. 
