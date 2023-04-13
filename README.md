@@ -37,6 +37,7 @@ Get-CMApplicationDeployment -Name "ApplicationNameHere" | Select-Object -ExpandP
 
 
 
-Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Vendor, InstallDate | Sort-Object DisplayName
-
-Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor, InstallDate | Sort-Object Name
+$uninstallApps = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Vendor, InstallDate
+$wmiApps = Get-WmiObject -Class Win32_Product | Select-Object Name, Version, Vendor, InstallDate
+$allApps = $uninstallApps + $wmiApps | Sort-Object -Unique DisplayName
+$allApps
